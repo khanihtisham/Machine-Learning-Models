@@ -3,7 +3,7 @@ import arcpy
 import numpy as np
 from xgboost import XGBClassifier
 from arcpy.sa import *
-
+ 
 # Set environment settings
 arcpy.env.overwriteOutput = True
 
