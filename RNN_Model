@@ -42,10 +42,10 @@ try:
     # Create target variable (for demonstration, we use the last raster as the target)
     target = raster_arrays[-1]  # This assumes the target is the last raster provided
 
-    # Reshape data for RNN input (samples, timesteps, features)
+    # Reshape data for kNN input (samples, timesteps, features)
     data = data.reshape((data.shape[0], 1, data.shape[1]))
 
-    # Initialize the RNN model
+    # Initialize the kNN model
     model = Sequential()
     model.add(SimpleRNN(50, input_shape=(data.shape[1], data.shape[2]), return_sequences=False))
     model.add(Dense(1, activation='sigmoid'))
@@ -54,11 +54,11 @@ try:
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
     # Fit the model
-    arcpy.AddMessage("Training RNN model...")
+    arcpy.AddMessage("Training kNN model...")
     model.fit(data, target, epochs=10, batch_size=32, verbose=1)
 
     # Predict the output
-    arcpy.AddMessage("Predicting with RNN model...")
+    arcpy.AddMessage("Predicting with kNN model...")
     output_predictions = model.predict(data)
 
     # Reshape predictions to the raster shape
@@ -76,7 +76,7 @@ try:
     arcpy.SetParameterAsText(2, output_raster)
 
     # Print completion message
-    arcpy.AddMessage("RNN Algorithm run successfully!")
+    arcpy.AddMessage("kNN Algorithm run successfully!")
     
 except Exception as e:
     # Print error message
