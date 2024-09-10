@@ -8,7 +8,7 @@ arcpy.env.overwriteOutput = True
 
 try:
     # Define input parameters
-    input_rasters = arcpy.GetParameterAsText(0)  # List of raster layers
+    input_rasters = arcpy.GetParameterAsText(0)  # List of raster layers 
     output_raster = arcpy.GetParameterAsText(1)  # Output raster path
 
     # Check if input parameters are correctly provided
