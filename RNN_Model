@@ -1,0 +1,84 @@
+# Import necessary libraries
+import arcpy
+import numpy as np
+from keras.models import Sequential
+from keras.layers import SimpleRNN, Dense
+from arcpy.sa import *
+
+# Set environment settings
+arcpy.env.overwriteOutput = True
+
+try:
+    # Define input parameters
+    input_rasters = arcpy.GetParameterAsText(0)  # List of raster layers
+    output_raster = arcpy.GetParameterAsText(1)  # Output raster path
+
+    # Check if input parameters are correctly provided
+    if not input_rasters or not output_raster:
+        raise ValueError("Input parameters are missing. Please check the input parameters and try again.")
+    
+    arcpy.AddMessage("Input parameters received correctly.")
+
+    # Parse input parameters
+    raster_list = input_rasters.split(";")  # Split raster layers
+
+    # Prepare an empty list to hold data for analysis
+    raster_arrays = []
+
+    # Loop through each raster and extract pixel values
+    for raster in raster_list:
+        # Convert raster to numpy array
+        raster_array = arcpy.RasterToNumPyArray(raster, nodata_to_value=-9999)
+
+        # Debugging line to check raster shape
+        arcpy.AddMessage("Processing raster: {} with shape: {}".format(raster, raster_array.shape))
+
+        # Add to dataset for analysis
+        raster_arrays.append(raster_array.flatten())
+
+    # Stack all raster arrays to create a 2D array (pixels, layers)
+    data = np.column_stack(raster_arrays)
+
+    # Create target variable (for demonstration, we use the last raster as the target)
+    target = raster_arrays[-1]  # This assumes the target is the last raster provided
+
+    # Reshape data for RNN input (samples, timesteps, features)
+    data = data.reshape((data.shape[0], 1, data.shape[1]))
+
+    # Initialize the RNN model
+    model = Sequential()
+    model.add(SimpleRNN(50, input_shape=(data.shape[1], data.shape[2]), return_sequences=False))
+    model.add(Dense(1, activation='sigmoid'))
+
+    # Compile the model
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+    # Fit the model
+    arcpy.AddMessage("Training RNN model...")
+    model.fit(data, target, epochs=10, batch_size=32, verbose=1)
+
+    # Predict the output
+    arcpy.AddMessage("Predicting with RNN model...")
+    output_predictions = model.predict(data)
+
+    # Reshape predictions to the raster shape
+    output_array = output_predictions.reshape(raster_arrays[0].shape)
+
+    # Convert numpy array to raster
+    lower_left = arcpy.Point(arcpy.Describe(raster_list[0]).extent.XMin, arcpy.Describe(raster_list[0]).extent.YMin)
+    cell_size = arcpy.Describe(raster_list[0]).meanCellWidth
+    output_raster_final = arcpy.NumPyArrayToRaster(output_array, lower_left, cell_size, cell_size, value_to_nodata=-9999)
+
+    # Save output raster
+    output_raster_final.save(output_raster)
+
+    # Set output parameter
+    arcpy.SetParameterAsText(2, output_raster)
+
+    # Print completion message
+    arcpy.AddMessage("RNN Algorithm run successfully!")
+    
+except Exception as e:
+    # Print error message
+    arcpy.AddError("An error occurred: {}".format(str(e)))
+    arcpy.AddError("Please check your input parameters and try again.")
