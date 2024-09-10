@@ -5,7 +5,7 @@ from keras.models import Sequential
 from keras.layers import SimplekNN, Dense
 from arcpy.sa import *
 
-# Set environment settings
+# Set environment settings 
 arcpy.env.overwriteOutput = True
 
 try:
