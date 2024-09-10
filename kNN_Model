@@ -2,7 +2,7 @@
 import arcpy
 import numpy as np
 from keras.models import Sequential
-from keras.layers import SimpleRNN, Dense
+from keras.layers import SimplekNN, Dense
 from arcpy.sa import *
 
 # Set environment settings
@@ -47,7 +47,7 @@ try:
 
     # Initialize the kNN model
     model = Sequential()
-    model.add(SimpleRNN(50, input_shape=(data.shape[1], data.shape[2]), return_sequences=False))
+    model.add(SimplekNN(50, input_shape=(data.shape[1], data.shape[2]), return_sequences=False))
     model.add(Dense(1, activation='sigmoid'))
 
     # Compile the model
